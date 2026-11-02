@@ -19,8 +19,12 @@ var Z=[
 var $=function(s){return document.querySelector(s)},WA='https://wa.me/'+CFG.wa;
 var pg=location.pathname.split('/').pop()||'index.html';
 var N=[['index.html','Beranda'],['portofolio.html','Portofolio'],['layanan.html','Layanan'],['cek-titik.html','Cek Titik'],['kontak.html','Kontak']];
-$('#h').innerHTML='<div class="nav"><a class="logo" href="index.html">'+CFG.nama+'</a><nav>'+N.map(function(n){return'<a href="'+n[0]+'"'+(n[0]==pg?' class="on"':'')+'>'+n[1]+'</a>'}).join('')+'</nav></div>';
-$('#f').innerHTML='<div class="w"><h3>'+CFG.nama+'</h3><p>'+CFG.area+'</p><p>WhatsApp: <a href="'+WA+'">'+CFG.tampil+'</a></p></div><a class="btn wa" href="'+WA+'?text='+encodeURIComponent('Halo, saya mau tanya soal sumur bor.')+'">Chat WhatsApp</a>';
+$('#h').innerHTML='<div class="nav"><a class="logo" href="index.html" aria-label="Djaya Cipta, beranda"><img src="img/logo.svg" alt=""><span class="brand-name">Djaya Cipta<small>SUMUR BOR</small></span></a><button class="menu-toggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="site-nav"><span aria-hidden="true"></span></button><nav id="site-nav">'+N.map(function(n){return'<a href="'+n[0]+'"'+(n[0]==pg?' class="on"':'')+'>'+n[1]+'</a>'}).join('')+'</nav></div>';
+var menu=$('.menu-toggle'),siteNav=$('#site-nav');
+menu.onclick=function(){var open=menu.getAttribute('aria-expanded')!=='true';menu.setAttribute('aria-expanded',open);siteNav.classList.toggle('open',open)};
+document.addEventListener('click',function(e){if(!e.target.closest('.nav')){menu.setAttribute('aria-expanded','false');siteNav.classList.remove('open')}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){menu.setAttribute('aria-expanded','false');siteNav.classList.remove('open');menu.focus()}});
+$('#f').innerHTML='<div class="w"><a class="footer-brand" href="index.html"><img src="img/logo.svg" alt=""><span>Djaya Cipta<small>SUMUR BOR</small></span></a><p>'+CFG.area+'</p><p>WhatsApp: <a href="'+WA+'">'+CFG.tampil+'</a></p></div><a class="btn wa" href="'+WA+'?text='+encodeURIComponent('Halo, saya mau tanya soal sumur bor.')+'">Chat WhatsApp</a>';
 function card(p,j){return'<div class="c"><img src="img/'+p.i+'.jpg" alt="'+p.t+'" loading="lazy"><div class="b"><h3>'+p.t+'</h3><p><b>Tantangan:</b> '+p.c+'</p><p><b>Kenapa metode ini:</b> '+p.k+'</p></div></div>'}
 if($('#pf'))$('#pf').innerHTML=P.slice(0,+$('#pf').dataset.n||99).map(card).join('');
 var lb=document.createElement('div');lb.className='lb';document.body.appendChild(lb);lb.onclick=function(){lb.className='lb'};
@@ -31,11 +35,15 @@ function show(la,ln){if(gm){var q={lat:la,lng:ln};gm.setCenter(q);gm.setZoom(19)
 var aiN=0;
 function ai(la,ln,b,ac){
  var o=$('#ai');if(!CFG.aiUrl||!o)return;var n=++aiN;o.innerHTML='<div class="aib"><b>Penjelasan AI</b><br><span>Sedang menganalisis titik Anda...</span></div>';
- fetch('https://api.open-meteo.com/v1/elevation?latitude='+la+'&longitude='+ln).then(function(r){return r.json()}).then(function(d){return d.elevation&&d.elevation[0]},function(){return null})
- .then(function(el){return fetch(CFG.aiUrl,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({lat:la,lng:ln,acc:ac||null,zona:b?b.n+' ('+b.l+', '+b.dp+')':null,elev:el})})})
+ var elevUrl='https://api.open-meteo.com/v1/elevation?latitude='+la+'&longitude='+ln;
+ var placeUrl='https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+la+'&lon='+ln+'&zoom=10&addressdetails=1&accept-language=id';
+ Promise.all([
+  fetch(elevUrl).then(function(r){return r.ok?r.json():null}).then(function(d){return d&&d.elevation&&d.elevation[0]},function(){return null}),
+  fetch(placeUrl).then(function(r){return r.ok?r.json():null}).then(function(d){var a=d&&d.address;if(!a)return null;var parts=[a.village||a.town||a.city||a.municipality,a.county||a.city_district,a.state].filter(function(v,i,x){return v&&x.indexOf(v)===i});return parts.join(', ').slice(0,160)||null},function(){return null})
+ ]).then(function(data){return fetch(CFG.aiUrl,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({lat:la,lng:ln,acc:ac||null,zona:b?b.n+' ('+b.l+', '+b.dp+')':null,elev:data[0],wilayah:data[1]})})})
  .then(function(r){if(!r.ok)throw 0;return r.json()})
  .then(function(d){if(n!=aiN)return;o.innerHTML='<div class="aib"><b>Penjelasan AI</b><br><span></span><br><small>Dibuat otomatis dari koordinat, bukan hasil survei.</small></div>';o.querySelector('span').textContent=d.text})
- .catch(function(){if(n==aiN)o.innerHTML=''})
+ .catch(function(){if(n==aiN)o.innerHTML='<div class="aib"><b>Penjelasan AI</b><br><span>AI belum dapat dihubungi. Silakan kirim titik ini lewat WhatsApp agar kami bantu cek.</span></div>'})
 }
 function cek(la,ln,ac){
  show(la,ln);var b=null,m=1e9;

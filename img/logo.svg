@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Logo Djaya Cipta Sumur Bor</title>
+  <circle cx="64" cy="64" r="58" fill="#173b5b" stroke="#e98b27" stroke-width="6"/>
+  <circle cx="64" cy="64" r="48" fill="#f7f6ef" stroke="#fff" stroke-width="3"/>
+  <path d="M22 78c12-12 22 12 35 0s22 12 35 0 16 1 17 2v24H19V80z" fill="#39a8d7" stroke="#173b5b" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M39 74 49 34h30l10 40M44 55h40M47 44h34M49 34l28 40M79 34 49 74" fill="none" stroke="#173b5b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M62 36h5v47l-2.5 9L62 83z" fill="#e98b27" stroke="#173b5b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M18 88h92" stroke="#fff" stroke-width="3" opacity=".95"/>
+</svg>
